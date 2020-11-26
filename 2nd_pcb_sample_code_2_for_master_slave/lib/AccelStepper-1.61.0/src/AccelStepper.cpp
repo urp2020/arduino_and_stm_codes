@@ -624,9 +624,7 @@ boolean AccelStepper::runSpeedToPosition()
 	_direction = DIRECTION_CW;
     else
 	_direction = DIRECTION_CCW;
-    while (distanceToGo() != 0)//add_
-        runSpeed();
-    return true;
+    return runSpeed();
 }
 
 // Blocks until the new target position is reached
