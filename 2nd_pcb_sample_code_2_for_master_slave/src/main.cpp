@@ -9,7 +9,7 @@
 #define NUM_OF_MOTION 2
 #define PI 3.141592
 #define NUM_OF_STEPS 400
-#define FPS 120
+#define FPS 10
 #define precision 25 //text_file number(string) maimum length 3.1415921
 
 int motion_index = 0; //change motion index for changing motion
@@ -26,9 +26,12 @@ int initial_position_mas,initial_position_slave;
 void motor_ready(AccelStepper* motor);
 void move_to_target_position(AccelStepper* master,float master_target,AccelStepper* slave,float slave_target);
 void change_SD_file(SDLib::File* _current_motion);
+float target_position_abs_position(float target);
+
 //SETUP
 void setup()
 {
+  pinMode(A2,OUTPUT);
   Serial.begin(9600);
   while (!Serial){;}
   Serial.print("Initializing SD card...");
@@ -44,7 +47,7 @@ void setup()
   motor_ready(&slave);
 
   initial_position_mas = analogRead(enc_inside); //READ INITIAL POSITION FROM MAGNETIC ENCODER
-  initial_position_slave = analogRead(enc_outside);
+  //initial_position_slave = analogRead(enc_outside);
   //may be calculated for a time, and get average.
 }
 
@@ -53,7 +56,7 @@ void setup()
 char read_from_text;
 int idx=0;
 float target_position_master,target_position_slave;
-
+float abs_target_mas;
 float encoder_pos;
 int temp;
 void loop(){
@@ -74,6 +77,8 @@ void loop(){
     if(read_from_text == '\n'){
       target_position_slave = atof(position_string); //update master_target when it meets '\n'
       //Serial.println(target_position_slave);
+        abs_target_mas = target_position_abs_position(target_position_slave);
+      analogWrite(enc_outside,(int) target_position_slave%255);
       memset(position_string,0,precision);
       idx=0;
       move_to_target_position(&master, target_position_master, &slave, target_position_slave );// moving
@@ -87,25 +92,26 @@ void loop(){
   }
     
 
-  /*
+  
   //at the end of the while loop (reading one line && moving), determine whether we should change motion or not.
   temp= analogRead(enc_inside);
-  encoder_pos = (temp -initial_position_mas ) >0 ? (temp -initial_position ): (temp -initial_position )+1024;
+  encoder_pos = (temp -initial_position_mas ) >0 ? (temp -initial_position_mas ): (temp -initial_position_mas )+1024;
   //we should change 0~1024 to 0~399
   encoder_pos = encoder_pos/1024.0*NUM_OF_STEPS; //ENCODER POSITION 
-  */
+  
 
 
   if(current_motion.position() == 0){// IF NO FILE CHANGE, AT THE END OF MOTION FILE, WE SHOULD INITIALIZE ITS POSITION
-    //initial_position_mas = analogRead(enc_inside);
+    initial_position_mas = analogRead(enc_inside);
     //initial_position_slave = analogRead(enc_outside);
 
     master.setCurrentPosition(0);
     slave.setCurrentPosition(0);
-    change_SD_file(&current_motion);
+    //change_SD_file(&current_motion);
 
   }
-  
+
+
 }
 
 void motor_ready(AccelStepper* motor){
@@ -137,11 +143,20 @@ void change_SD_file(SDLib::File* _current_motion){//if there did not reach targe
   Serial.println((*_current_motion).name());
 
   initial_position_mas = analogRead(enc_inside);
-  initial_position_slave = analogRead(enc_outside);
+  //initial_position_slave = analogRead(enc_outside);
 
   master.setCurrentPosition(0);
   slave.setCurrentPosition(0);
 
+}
+float target_position_abs_position(float target){
+    while(target<0 ||target>=400){
+      if(target<0)
+        target=target+400;
+      if(target>400)
+        target= target-400;
+    }
+  return target;
 }
 
 /*
