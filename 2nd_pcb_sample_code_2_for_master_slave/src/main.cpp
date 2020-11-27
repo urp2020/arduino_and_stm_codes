@@ -6,14 +6,14 @@
 #include "Pinmap.h"
 
 
-#define NUM_OF_MOTION 3
+#define NUM_OF_MOTION 2
 #define PI 3.141592
 #define NUM_OF_STEPS 400
-#define FPS 10
+#define FPS 120
 #define precision 25 //text_file number(string) maimum length 3.1415921
 
 int motion_index = 0; //change motion index for changing motion
-char *MOTIONS[NUM_OF_MOTION] = {"motion1.txt", "motion2.txt", "motion3.txt"};
+char *MOTIONS[NUM_OF_MOTION] = {"motion1.txt", "motion2.txt"};
 SDLib::File current_motion;
 
 AccelStepper master(AccelStepper::DRIVER,step_inside,dir_inside); //step, dir
@@ -24,18 +24,17 @@ int initial_position_mas,initial_position_slave;
 
 
 void motor_ready(AccelStepper* motor);
-void move_to_target_position(AccelStepper* motor,float target_position);
-
+void move_to_target_position(AccelStepper* master,float master_target,AccelStepper* slave,float slave_target);
+void change_SD_file(SDLib::File* _current_motion);
 //SETUP
 void setup()
 {
   Serial.begin(9600);
   while (!Serial){;}
   Serial.print("Initializing SD card...");
-  if (!SD.begin(sd_CS))
+  while(!SD.begin(sd_CS))
   {                                                                                                                                                                                                                                                                                                                                 
     Serial.println("initialization failed!");
-    while (1);
   }
   Serial.println("initialization done.");
 
@@ -66,13 +65,15 @@ void loop(){
     idx++;
 
     if(read_from_text == '\t'){ // TAB IS NEEDEDS
-      target_position_slave = atof(position_string);  //update slave_target when it meets '\t'
+      target_position_master = atof(position_string);
+      //update slave_target when it meets '\t'
       memset(position_string,0,precision);
       idx=0;
 
     }
     if(read_from_text == '\n'){
-      target_position_master = atof(position_string); //update master_target when it meets '\n'
+      target_position_slave = atof(position_string); //update master_target when it meets '\n'
+      //Serial.println(target_position_slave);
       memset(position_string,0,precision);
       idx=0;
       move_to_target_position(&master, target_position_master, &slave, target_position_slave );// moving
@@ -80,12 +81,9 @@ void loop(){
     }
   }
   else{
-    target_position_master = atof(position_string); //update master_target when it meets EOF
-    memset(position_string,0,precision);
-    idx=0;
-    move_to_target_position(&master, target_position_master, &slave, target_position_slave );// moving
-
-    current_motion.seek(0);
+    current_motion.close();
+    current_motion = SD.open(MOTIONS[motion_index]);
+    //current_motion.seek(0);
   }
     
 
@@ -98,12 +96,13 @@ void loop(){
   */
 
 
-  if(current_motion.position() ==0){// IF NO FILE CHANGE, AT THE END OF MOTION FILE, WE SHOULD INITIALIZE ITS POSITION
-    initial_position_mas = analogRead(enc_inside);
-    initial_position_slave = analogRead(enc_outside);
+  if(current_motion.position() == 0){// IF NO FILE CHANGE, AT THE END OF MOTION FILE, WE SHOULD INITIALIZE ITS POSITION
+    //initial_position_mas = analogRead(enc_inside);
+    //initial_position_slave = analogRead(enc_outside);
 
     master.setCurrentPosition(0);
     slave.setCurrentPosition(0);
+    change_SD_file(&current_motion);
 
   }
   
@@ -135,7 +134,7 @@ void change_SD_file(SDLib::File* _current_motion){//if there did not reach targe
   _current_motion->close();// close file
   motion_index= (motion_index+1)%NUM_OF_MOTION; //motion index update
   *(_current_motion) = SD.open(MOTIONS[motion_index]); //open new motion
-
+  Serial.println((*_current_motion).name());
 
   initial_position_mas = analogRead(enc_inside);
   initial_position_slave = analogRead(enc_outside);
