@@ -9,7 +9,7 @@
 #define NUM_OF_MOTION 2
 #define PI 3.141592
 #define NUM_OF_STEPS 400
-#define FPS 10
+#define FPS 60
 #define precision 25 //text_file number(string) maimum length 3.1415921
 
 int motion_index = 0; //change motion index for changing motion
@@ -56,7 +56,7 @@ void setup()
 char read_from_text;
 int idx=0;
 float target_position_master,target_position_slave;
-float abs_target_mas;
+float abs_target_mas,abs_target_slave;
 float encoder_pos;
 int temp;
 void loop(){
@@ -69,6 +69,7 @@ void loop(){
 
     if(read_from_text == '\t'){ // TAB IS NEEDEDS
       target_position_master = atof(position_string);
+      abs_target_mas = target_position_abs_position(target_position_master);
       //update slave_target when it meets '\t'
       memset(position_string,0,precision);
       idx=0;
@@ -76,19 +77,20 @@ void loop(){
     }
     if(read_from_text == '\n'){
       target_position_slave = atof(position_string); //update master_target when it meets '\n'
-      //Serial.println(target_position_slave);
-        abs_target_mas = target_position_abs_position(target_position_slave);
-      analogWrite(enc_outside,(int) target_position_slave%255);
+      
+      abs_target_slave = target_position_abs_position(target_position_slave);
+      //analogWrite(enc_outside,(int) target_position_slave%255);
       memset(position_string,0,precision);
       idx=0;
+      Serial.println(target_position_slave);
       move_to_target_position(&master, target_position_master, &slave, target_position_slave );// moving
 
     }
   }
   else{
-    current_motion.close();
-    current_motion = SD.open(MOTIONS[motion_index]);
-    //current_motion.seek(0);
+    //current_motion.close();
+    //current_motion = SD.open(MOTIONS[motion_index]);
+    current_motion.seek(0);
   }
     
 
@@ -99,11 +101,11 @@ void loop(){
   //we should change 0~1024 to 0~399
   encoder_pos = encoder_pos/1024.0*NUM_OF_STEPS; //ENCODER POSITION 
   
-
-
+  analogWrite(enc_outside, abs_target_mas-encoder_pos);
+  //Serial.println(abs_target_mas);
   if(current_motion.position() == 0){// IF NO FILE CHANGE, AT THE END OF MOTION FILE, WE SHOULD INITIALIZE ITS POSITION
     initial_position_mas = analogRead(enc_inside);
-    //initial_position_slave = analogRead(enc_outside);
+    initial_position_slave = analogRead(enc_outside);
 
     master.setCurrentPosition(0);
     slave.setCurrentPosition(0);
@@ -143,14 +145,14 @@ void change_SD_file(SDLib::File* _current_motion){//if there did not reach targe
   Serial.println((*_current_motion).name());
 
   initial_position_mas = analogRead(enc_inside);
-  //initial_position_slave = analogRead(enc_outside);
+  initial_position_slave = analogRead(enc_outside);
 
   master.setCurrentPosition(0);
   slave.setCurrentPosition(0);
 
 }
 float target_position_abs_position(float target){
-    while(target<0 ||target>=400){
+    while(target<0 ||target>400){
       if(target<0)
         target=target+400;
       if(target>400)
