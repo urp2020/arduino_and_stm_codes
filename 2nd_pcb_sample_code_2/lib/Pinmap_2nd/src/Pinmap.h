@@ -6,8 +6,8 @@
 #define dir_outside D10
 #define step_outside D8
 
-#define enc_insde A5
-#define enc_insde A2
+#define enc_inside A5
+#define enc_outside A2
 
 #define sd_MISO D5
 #define sd_MOSI D4
