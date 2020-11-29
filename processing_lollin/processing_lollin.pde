@@ -18,7 +18,7 @@ void setup(){ //same as arduino program
   printArray(Serial.list());   //prints all available serial ports
   
   port = new Serial(this, "/dev/ttyUSB0", 9600);  //i have connected arduino to com3, it would be different in linux and mac os
-  port.write(max_angle_difference);
+  port.write(max_angle_difference+":"+STEP );
   //lets add buton to empty window
 
 
