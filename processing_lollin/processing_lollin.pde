@@ -53,15 +53,15 @@ void keyPressed() {
     port.write('f');
   }
   
-    if (key == 'w') {
+    if (key == 'w' || key == 'W') {
     MOTOR_SPEED2 =MOTOR_SPEED2+STEP;
     port.write('w');
   }
-  if (key =='s') {
+  if (key =='s' || key =='S') {
     MOTOR_SPEED2 =MOTOR_SPEED2-STEP;
     port.write('s');
   }
-  if (key =='a') {
+  if (key =='a' || key =='A') {
     MOTOR_DIR2 =-MOTOR_DIR2;
     port.write('a');
   }
