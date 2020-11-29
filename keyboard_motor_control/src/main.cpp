@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include "AccelStepper.h"
 
-//#define TREE 
+#define TREE 
 
 
 AccelStepper stepper1(AccelStepper::DRIVER,16,17);
@@ -12,6 +12,8 @@ int stepper1_dir=-1, stepper2_dir=1;
 int max_angle_difference = 180,step=5;
 
 void motor_ready(AccelStepper* motor);
+
+int stored_speed1=0,stored_speed2=0;
 
 String initial_information;
 int delimiter_index;
@@ -31,7 +33,6 @@ void setup() {
   max_angle_difference = initial_information.substring(0,delimiter_index).toInt();
   step = initial_information.substring(delimiter_index+1).toInt();
   
-  Serial.println(String(max_angle_difference)+' '+String(step));
   
 }
 
@@ -58,6 +59,41 @@ void loop() {
       case 'a':
         stepper2_dir= -stepper2_dir;
         break;
+      case '0':
+        if(stepper1_speed ==0 &&stepper2_speed ==0){
+          stepper1_speed = stored_speed1;
+          stepper2_speed = stored_speed2;
+        }
+        else{
+          stored_speed1 = stepper1_speed;
+          stored_speed2 = stepper2_speed;
+
+          stepper1_speed= 0;
+          stepper2_speed= 0;
+
+        }
+        break;
+        
+      case 'z':
+        if(stepper1_speed ==0 ){
+          stepper1_speed = stored_speed1;
+        }
+        else{
+          stored_speed1 = stepper1_speed;
+          stepper1_speed= 0;
+        }
+        break;
+
+      case 'x':
+        if(stepper2_speed ==0 ){
+          stepper2_speed = stored_speed2;
+        }
+        else{
+          stored_speed2 = stepper2_speed;
+          stepper2_speed= 0;
+        }
+        break;
+        
      }
      stepper1.setSpeed(stepper1_speed*stepper1_dir);
      stepper2.setSpeed(stepper2_speed*stepper2_dir);
@@ -80,7 +116,6 @@ void loop() {
     stepper1.runSpeed();
     stepper2.runSpeed();
     
-
 }
 
 void motor_ready(AccelStepper* motor){
