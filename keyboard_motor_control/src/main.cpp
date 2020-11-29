@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include "AccelStepper.h"
 
+#define STEP 5
+
 AccelStepper stepper1(AccelStepper::DRIVER,16,17);
 AccelStepper stepper2(AccelStepper::DRIVER,18,19);
 
@@ -31,19 +33,19 @@ void loop() {
      char c = Serial.read();
      switch(c){
       case 'u':
-        stepper1_speed= stepper1_speed+10;
+        stepper1_speed= stepper1_speed+STEP;
         break;
       case 'd':
-        stepper1_speed= stepper1_speed-10;
+        stepper1_speed= stepper1_speed-STEP;
         break;
       case 'f':
         stepper1_dir= -stepper1_dir;
         break;
       case 'w':
-        stepper2_speed= stepper2_speed+10;
+        stepper2_speed= stepper2_speed+STEP;
         break;
       case 's':
-        stepper2_speed= stepper2_speed-10;
+        stepper2_speed= stepper2_speed-STEP;
         break;
       case 'a':
         stepper2_dir= -stepper2_dir;

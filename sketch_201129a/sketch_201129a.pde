@@ -1,6 +1,7 @@
 import controlP5.*; //import ControlP5 library
 import processing.serial.*;
 
+static int STEP=5; 
 Serial port;
 
 ControlP5 cp5; //create ControlP5 object
@@ -40,11 +41,11 @@ void draw(){  //same as loop in arduino
 void keyPressed() {
 
   if (keyCode == UP) {
-    MOTOR_SPEED1 =MOTOR_SPEED1+10;
+    MOTOR_SPEED1 =MOTOR_SPEED1+STEP;
     port.write('u');
   }
   if (keyCode ==DOWN) {
-    MOTOR_SPEED1 =MOTOR_SPEED1-10;
+    MOTOR_SPEED1 =MOTOR_SPEED1-STEP;
     port.write('d');
   }
   if (keyCode ==LEFT) {
@@ -53,11 +54,11 @@ void keyPressed() {
   }
   
     if (key == 'w') {
-    MOTOR_SPEED2 =MOTOR_SPEED2+10;
+    MOTOR_SPEED2 =MOTOR_SPEED2+STEP;
     port.write('w');
   }
   if (key =='s') {
-    MOTOR_SPEED2 =MOTOR_SPEED2-10;
+    MOTOR_SPEED2 =MOTOR_SPEED2-STEP;
     port.write('s');
   }
   if (key =='a') {
