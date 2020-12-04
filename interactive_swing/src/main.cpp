@@ -18,6 +18,8 @@ float make_position_within_range(float position,float range_max,float range_min)
 float initial_pos_encoder,pos_encoder;
 
 //SETUP
+
+
 void setup()
 {
   Serial.begin(9600);
@@ -27,14 +29,18 @@ void setup()
 
 
 //LOOP
-float num_of_steps_for_encoder_pos;
+float num_of_steps_for_encoder_pos,num_of_steps_for_master;
 void loop(){
 
     master.run();
     pos_encoder= analogRead(enc_inside); // 0~1023
 
+    //encoder pos(0~1023) to steps(0~399)
     num_of_steps_for_encoder_pos = (pos_encoder-initial_pos_encoder)/1024.0*400;
+    
+    //make pos wintin range 0~399
     num_of_steps_for_encoder_pos = make_position_within_range(num_of_steps_for_encoder_pos,NUM_OF_STEPS,0);
+    num_of_steps_for_master = make_position_within_range(master.currentPosition(),NUM_OF_STEPS,0);
 
     //USE POLLING
     if(abs(master.currentPosition()-num_of_steps_for_encoder_pos ) > ENDURANCE){
