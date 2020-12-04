@@ -42,9 +42,13 @@ void loop(){
     num_of_steps_for_encoder_pos = make_position_within_range(num_of_steps_for_encoder_pos,NUM_OF_STEPS,0);
     num_of_steps_for_master = make_position_within_range(master.currentPosition(),NUM_OF_STEPS,0);
 
-    //USE POLLING
+    //USE POLLING(recognize desync with encoder and master)
     if(abs(master.currentPosition()-num_of_steps_for_encoder_pos ) > ENDURANCE){
         master.setSpeed(-master.speed());
+        //should synchronize encoder and master
+        master.setCurrentPosition(0);
+        initial_pos_encoder = analogRead(enc_inside);
+
     }
     
 
