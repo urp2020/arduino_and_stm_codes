@@ -8,7 +8,7 @@
 #define PI 3.141592
 #define NUM_OF_STEPS 400
 #define FPS 10
-#define ENDURANCE 20 // MEAN 5.4 DEGREE
+#define ENDURANCE 30.0 // MEAN 5.4 DEGREE
 
 AccelStepper master(AccelStepper::DRIVER,step_inside,dir_inside); //step, dir
 void motor_ready(AccelStepper* motor);
@@ -16,6 +16,7 @@ void motor_ready(AccelStepper* motor);
 float make_position_within_range(float position,float range_max,float range_min);
 
 float initial_pos_encoder,pos_encoder;
+float getAverageRead(uint32_t anal_in,int num);
 
 //SETUP
 
@@ -24,7 +25,7 @@ void setup()
 {
   Serial.begin(9600);
   motor_ready(&master);
-  initial_pos_encoder = analogRead(enc_inside); //READ INITIAL POSITION FROM MAGNETIC ENCODER
+  initial_pos_encoder = getAverageRead(enc_inside,10); //READ INITIAL POSITION FROM MAGNETIC ENCODER
   
 }
 
@@ -35,7 +36,7 @@ float num_of_steps_for_encoder_pos,num_of_steps_for_master;
 void loop(){
     //analogWrite(enc_outside,0);
     master.runSpeed();
-    pos_encoder= analogRead(enc_inside); // 0~1023
+    pos_encoder= getAverageRead(enc_inside,10); // 0~1023
 
     //encoder pos(0~1023) to steps(0~399)
     num_of_steps_for_encoder_pos = (pos_encoder-initial_pos_encoder)/1024.0*400;
@@ -47,15 +48,15 @@ void loop(){
     //USE POLLING(recognize desync with encoder and master)
        
     
-    if(abs(num_of_steps_for_master-num_of_steps_for_encoder_pos ) > ENDURANCE){
-        
+    if(abs(num_of_steps_for_master-num_of_steps_for_encoder_pos ) > ENDURANCE &&
+       abs(num_of_steps_for_master-num_of_steps_for_encoder_pos )< 400-ENDURANCE ){
         //should synchronize encoder and master
         master.setCurrentPosition(0);
         global_speed=-global_speed; 
         master.setSpeed(global_speed);
-        initial_pos_encoder = analogRead(enc_inside);
+        initial_pos_encoder = getAverageRead(enc_inside,10);
         //analogWrite(enc_outside,255);
-        Serial.println(abs(num_of_steps_for_master-num_of_steps_for_encoder_pos ));
+        //Serial.println(abs(num_of_steps_for_master-num_of_steps_for_encoder_pos ));
     }
     
     
@@ -71,7 +72,7 @@ float make_position_within_range(float position,float range_max,float range_min)
       else if(position>=range_max)
         position= position-(range_max-range_min);
     }
-    if(abs(position-range_max) <10)//if postion is near 400 just turn into 0
+    if(abs(position-range_max) <5)//if postion is near 400 just turn into 0
       position= range_min;
   return position;
 }
@@ -83,6 +84,13 @@ void motor_ready(AccelStepper* motor){
   motor->setMaxSpeed(2000);//initialize stepper
   motor->setCurrentPosition(0);
 
-  motor->setSpeed(200);
+  motor->setSpeed(500);
   global_speed =motor->speed(); 
+}
+
+float getAverageRead(uint32_t anal_in,int num){
+  float aver;
+  for(int i=0; i<num; i++)
+    aver+=analogRead(anal_in);  
+  return aver/num;
 }
