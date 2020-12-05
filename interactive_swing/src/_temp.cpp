@@ -1,3 +1,4 @@
+
 #include <Arduino.h>
 
 #include "AccelStepper.h"
@@ -8,12 +9,8 @@
 #define PI 3.141592
 #define NUM_OF_STEPS 400
 #define FPS 10
-<<<<<<< HEAD
-#define ENDURANCE 30.0 // MEAN 5.4 DEGREE
+#define ENDURANCE 50.0 // MEAN 5.4 DEGREE
 
-=======
-#define ENDURANCE 20 // MEAN 5.4 DEGREE
->>>>>>> 4eece6d29e13472589ca9a18046fb5ffc8d659b5
 AccelStepper master(AccelStepper::DRIVER,step_inside,dir_inside); //step, dir
 void motor_ready(AccelStepper* motor);
 
@@ -50,9 +47,10 @@ void loop(){
     num_of_steps_for_master = make_position_within_range(master.currentPosition(),NUM_OF_STEPS,0);
 
     //USE POLLING(recognize desync with encoder and master)
-       
-    
-    if(abs(num_of_steps_for_master-num_of_steps_for_encoder_pos ) > ENDURANCE &&
+
+  //Serial.println(abs(num_of_steps_for_master-num_of_steps_for_encoder_pos ));
+
+        if(abs(num_of_steps_for_master-num_of_steps_for_encoder_pos ) > ENDURANCE &&
        abs(num_of_steps_for_master-num_of_steps_for_encoder_pos )< 400-ENDURANCE ){
         //should synchronize encoder and master
         master.setCurrentPosition(0);
@@ -62,7 +60,8 @@ void loop(){
         //analogWrite(enc_outside,255);
         //Serial.println(abs(num_of_steps_for_master-num_of_steps_for_encoder_pos ));
     }
-    
+
+  
     
     
 
@@ -76,7 +75,7 @@ float make_position_within_range(float position,float range_max,float range_min)
       else if(position>=range_max)
         position= position-(range_max-range_min);
     }
-    if(abs(position-range_max) <5)//if postion is near 400 just turn into 0
+    if(abs(position-range_max) <15)//if postion is near 400 just turn into 0
       position= range_min;
   return position;
 }
@@ -98,3 +97,4 @@ float getAverageRead(uint32_t anal_in,int num){
     aver+=analogRead(anal_in);  
   return aver/num;
 }
+

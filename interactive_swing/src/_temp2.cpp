@@ -1,3 +1,4 @@
+/*
 #include <Arduino.h>
 #include "AccelStepper.h"
 #include "Pinmap.h"
@@ -9,7 +10,7 @@
 #define VOLTAGE_LEVEL_PER_ENCODER_REVOLUTION 1024.0
 
 int tolerance = 10; //steps =  9 Degree
-double tolerance_sin_value = 0.2;//sin(10*PI/180);
+double tolerance_sin_value = 0.3;
 
 AccelStepper master(AccelStepper::DRIVER, step_inside, dir_inside);
 long current_angle;
@@ -30,7 +31,7 @@ void init_motor(AccelStepper* motor, long initial_position){
 double get_current_angle_as_ratio(uint32_t encoder_pin){
     // 1 is 'a' revolution (360 degree)
     uint32_t voltage_level = analogRead(encoder_pin);
-    return (double)(voltage_level/VOLTAGE_LEVEL_PER_ENCODER_REVOLUTION);
+    return ((double)voltage_level)/VOLTAGE_LEVEL_PER_ENCODER_REVOLUTION;
 }
 long get_current_angle_as_steps(uint32_t encoder_pin){
     return (long)(get_current_angle_as_ratio(encoder_pin)*STEPS_PER_REVOLUTION);
@@ -40,10 +41,13 @@ double get_current_angle_as_radian(uint32_t encoder_pin){
 }
 long get_command_angle_as_steps(AccelStepper* stepper){
     long position = stepper->currentPosition();
-    position = position%MAX_REVOLUTION_PER_SECOND;
+    position = position%STEPS_PER_REVOLUTION;
     if(position < 0){
-        return 0;
+        //?
+        //Serial.println(position);
+        return STEPS_PER_REVOLUTION + position;
     }else{
+        //Serial.println(position);
         return position;
     }
 }
@@ -71,19 +75,31 @@ void loop(){
     command_angle_rad = get_command_angle_as_radian(&master);
 
     double difference_angle_rad = command_angle_rad - current_angle_rad;
+     master.runSpeed();
     double difference_sin_value = sin(difference_angle_rad);
+     master.runSpeed();
+     
     if(difference_sin_value>0){
         // command is leading, real angle is lagging
         if(abs(difference_sin_value) > tolerance_sin_value){
             // force applied
             command_speed = -command_speed; //flip
+            init_motor(&master, current_angle);
         }else{
             //pass
         }
-    }else{
+    }else if(difference_sin_value<0){
         // command is lagging, real angle is leading
         if(abs(difference_sin_value) > tolerance_sin_value){
-            command_speed += 200; //accelerate;
+            if(command_speed>0){
+                command_speed += 20; //accelerate
+            }else{
+                command_speed -= 20;
+            }
+            init_motor(&master, current_angle);
         }
     }
+    Serial.println(sin(abs(current_angle_rad)));
 }
+
+*/
