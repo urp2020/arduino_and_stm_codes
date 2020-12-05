@@ -8,7 +8,7 @@
 #define PI 3.141592
 #define NUM_OF_STEPS 400
 #define FPS 10
-#define ENDURANCE 5 // MEAN 4.5 DEGREE
+#define ENDURANCE 20 // MEAN 5.4 DEGREE
 
 AccelStepper master(AccelStepper::DRIVER,step_inside,dir_inside); //step, dir
 void motor_ready(AccelStepper* motor);
@@ -19,20 +19,22 @@ float initial_pos_encoder,pos_encoder;
 
 //SETUP
 
-
+int global_speed;
 void setup()
 {
   Serial.begin(9600);
   motor_ready(&master);
   initial_pos_encoder = analogRead(enc_inside); //READ INITIAL POSITION FROM MAGNETIC ENCODER
+  
 }
 
 
 //LOOP
 float num_of_steps_for_encoder_pos,num_of_steps_for_master;
-void loop(){
 
-    master.run();
+void loop(){
+    //analogWrite(enc_outside,0);
+    master.runSpeed();
     pos_encoder= analogRead(enc_inside); // 0~1023
 
     //encoder pos(0~1023) to steps(0~399)
@@ -43,13 +45,20 @@ void loop(){
     num_of_steps_for_master = make_position_within_range(master.currentPosition(),NUM_OF_STEPS,0);
 
     //USE POLLING(recognize desync with encoder and master)
-    if(abs(master.currentPosition()-num_of_steps_for_encoder_pos ) > ENDURANCE){
-        master.setSpeed(-master.speed());
+       
+    
+    if(abs(num_of_steps_for_master-num_of_steps_for_encoder_pos ) > ENDURANCE){
+        
         //should synchronize encoder and master
         master.setCurrentPosition(0);
+        global_speed=-global_speed; 
+        master.setSpeed(global_speed);
         initial_pos_encoder = analogRead(enc_inside);
-
+        //analogWrite(enc_outside,255);
+        Serial.println(abs(num_of_steps_for_master-num_of_steps_for_encoder_pos ));
     }
+    
+    
     
 
 }
@@ -59,9 +68,11 @@ float make_position_within_range(float position,float range_max,float range_min)
     while(position<range_min ||position>=range_max){
       if(position<range_min)
         position=position+(range_max-range_min);
-      if(position>=range_max)
+      else if(position>=range_max)
         position= position-(range_max-range_min);
     }
+    if(abs(position-range_max) <10)//if postion is near 400 just turn into 0
+      position= range_min;
   return position;
 }
 
@@ -73,4 +84,5 @@ void motor_ready(AccelStepper* motor){
   motor->setCurrentPosition(0);
 
   motor->setSpeed(200);
+  global_speed =motor->speed(); 
 }

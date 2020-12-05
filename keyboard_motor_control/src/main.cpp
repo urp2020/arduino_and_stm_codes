@@ -8,7 +8,7 @@ AccelStepper stepper1(AccelStepper::DRIVER,16,17);
 AccelStepper stepper2(AccelStepper::DRIVER,18,19);
 
 int stepper1_speed=0,stepper2_speed=0;
-int stepper1_dir=-1, stepper2_dir=1;
+int stepper1_dir=1, stepper2_dir=1;
 int max_angle_difference = 180,step=5;
 
 void motor_ready(AccelStepper* motor);
@@ -100,7 +100,7 @@ void loop() {
    }
 
     #ifdef TREE
-    if(abs(-stepper1.currentPosition()-stepper2.currentPosition())>=max_angle_difference){
+    if(abs(stepper1.currentPosition()-stepper2.currentPosition())>=max_angle_difference){
       /*
       if(stepper1.speed()>stepper2.speed() ){
         stepper2.setSpeed(stepper1.speed());

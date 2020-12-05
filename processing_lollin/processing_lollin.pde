@@ -9,7 +9,7 @@ PFont font;
 int MOTOR_SPEED1=0,MOTOR_DIR1=1;
 int MOTOR_SPEED2=0,MOTOR_DIR2=1;
 
-String max_angle_difference = "180";
+String max_angle_difference = "2000000";
 
 int stored_speed1,stored_speed2;
 void setup(){ //same as arduino program
