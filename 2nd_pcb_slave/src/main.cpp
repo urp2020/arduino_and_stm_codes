@@ -1,6 +1,7 @@
 #include <mbed.h>
 #include "step_listener.h"
-#include "Pinmap.h"
+//#include Pinmap_v2.h" // for new pcb (with magnetic encoder)
+#include "Pinmap_v1.h"  // for old pcb (with current sensor)
 
 InterruptIn step(step_outside);
 InterruptIn dir(dir_outside);
