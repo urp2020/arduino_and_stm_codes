@@ -9,7 +9,6 @@
 #define NUM_OF_STEPS 400
 #define FPS 10
 #define ENDURANCE 20 // MEAN 5.4 DEGREE
-
 AccelStepper master(AccelStepper::DRIVER,step_inside,dir_inside); //step, dir
 void motor_ready(AccelStepper* motor);
 
