@@ -8,8 +8,12 @@
 #define PI 3.141592
 #define NUM_OF_STEPS 400
 #define FPS 10
+<<<<<<< HEAD
 #define ENDURANCE 30.0 // MEAN 5.4 DEGREE
 
+=======
+#define ENDURANCE 20 // MEAN 5.4 DEGREE
+>>>>>>> 4eece6d29e13472589ca9a18046fb5ffc8d659b5
 AccelStepper master(AccelStepper::DRIVER,step_inside,dir_inside); //step, dir
 void motor_ready(AccelStepper* motor);
 
